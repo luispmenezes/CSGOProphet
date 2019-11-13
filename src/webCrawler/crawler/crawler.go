@@ -8,15 +8,29 @@ import (
 	"strings"
 	"time"
 
+	"./model"
+
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetResults(startDate string, endDate string, stars int, demoRequired bool) []string {
+func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool) []model.DemoLink {
+	var demoLinkList []model.DemoLink
+	resultURLList := getResults(startDate, endDate, stars, demoRequired)
+
+	for _, resultURL := range resultURLList {
+		demoLinkList = append(demoLinkList,
+			model.DemoLink{DemoURL: getResultDemoLink(resultURL), MatchResultURL: resultURL})
+	}
+
+	return demoLinkList
+}
+
+func getResults(startDate string, endDate string, stars int, demoRequired bool) []string {
 	var resultsURLs []string
 	var maxRecords int
 	resultsURLs, _, maxRecords = getResultsPage(0, startDate, endDate, stars, demoRequired)
 	for i := 100; i < maxRecords; i += 100 {
-		pageURLs, _, _ := getResultsPage(0, startDate, endDate, stars, demoRequired)
+		pageURLs, _, _ := getResultsPage(i, startDate, endDate, stars, demoRequired)
 		resultsURLs = append(resultsURLs, pageURLs...)
 	}
 	return resultsURLs
