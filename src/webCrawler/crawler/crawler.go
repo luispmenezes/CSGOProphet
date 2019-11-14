@@ -18,8 +18,7 @@ func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool
 	resultURLList := getResults(startDate, endDate, stars, demoRequired)
 
 	for _, resultURL := range resultURLList {
-		demoLinkList = append(demoLinkList,
-			model.DemoLink{DemoURL: getResultDemoLink(resultURL), MatchResultURL: resultURL})
+		demoLinkList = append(demoLinkList, getResultDemoLink(resultURL))
 	}
 
 	return demoLinkList
@@ -29,6 +28,7 @@ func getResults(startDate string, endDate string, stars int, demoRequired bool) 
 	var resultsURLs []string
 	var maxRecords int
 	resultsURLs, _, maxRecords = getResultsPage(0, startDate, endDate, stars, demoRequired)
+	log.Printf("Result Records Count: %d", maxRecords)
 	for i := 100; i < maxRecords; i += 100 {
 		pageURLs, _, _ := getResultsPage(i, startDate, endDate, stars, demoRequired)
 		resultsURLs = append(resultsURLs, pageURLs...)
@@ -65,14 +65,19 @@ func getResultsPage(offset int, startDate string, endDate string, stars int, dem
 		parameters.Add(resultsParamContent, ContentDEMO)
 	}
 
-	req, err := http.NewRequest("GET", resultsURL, strings.NewReader(parameters.Encode()))
+	requestURL := resultsURL
+	if len(parameters) > 0 {
+		requestURL += "?" + parameters.Encode()
+	}
+
+	log.Printf("New Request-> URL:%s", requestURL)
+
+	req, err := http.NewRequest("GET", requestURL, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	req.Header.Add("User-Agent", userAgent)
-
-	log.Printf("New Request-> URL:%s", req.URL)
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -92,31 +97,33 @@ func getResultsPage(offset int, startDate string, endDate string, stars int, dem
 	recordCount, _ := strconv.Atoi(paginationTokens[len(paginationTokens)-2])
 	lastRecord, _ := strconv.Atoi(paginationTokens[2])
 
-	matchUrlList := []string{}
+	matchURLList := []string{}
 
-	document.Find(".result-con").Each(func(i int, s *goquery.Selection) {
-		url, _ := s.Find("a").Attr("href")
-		matchUrlList = append(matchUrlList, url)
+	document.Find(".results-holder > .results-all > .results-sublist > .result-con > .a-reset").Each(func(i int, s *goquery.Selection) {
+		url, _ := s.Attr("href")
+		matchURLList = append(matchURLList, url)
 	})
 
-	return matchUrlList, lastRecord, recordCount
+	return matchURLList, lastRecord, recordCount
 }
 
-func getResultDemoLink(resultURL string) string {
+func getResultDemoLink(resultURL string) model.DemoLink {
 	log.Printf("Get DemoLink (matchUrl:%s)", resultURL)
 
 	httpClient := &http.Client{
 		Timeout: requestTimeout * time.Second,
 	}
 
-	req, err := http.NewRequest("GET", baseURL+resultURL, nil)
+	requestURL := baseURL + resultURL
+
+	log.Printf("New Request-> URL:%s", requestURL)
+
+	req, err := http.NewRequest("GET", requestURL, nil)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	req.Header.Set("User-Agent", userAgent)
-
-	log.Printf("New Request-> URL:%s", req.URL)
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -133,6 +140,7 @@ func getResultDemoLink(resultURL string) string {
 	}
 
 	demoURL, _ := document.Find(".stream-box > a").First().Attr("href")
+	timeStamp, _ := document.Find(".teamsBox > .timeAndEvent > .time").First().Attr("data-unix")
 
-	return demoURL
+	return model.DemoLink{DemoURL: demoURL, MatchResultURL: resultURL, Timestamp: timeStamp}
 }
