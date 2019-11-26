@@ -3,15 +3,17 @@ package model
 import "fmt"
 
 type Round struct {
+	Index         int
 	Winner        string
-	Duration      int
-	EndReason     string
+	StartTick     int
+	EndTick       int
+	EndReason     int
 	KillEvents    []KillEvent
 	EconomyEvents []EconomyEvent
 	BombEvents    []BombEvent
 }
 
 func (r Round) String() string {
-	return fmt.Sprintf("[%s, %d, %s, %v, %v, %v]",
-		r.Winner, r.Duration, r.EndReason, r.KillEvents, r.EconomyEvents, r.BombEvents)
+	return fmt.Sprintf("[%d %s, %d, %d, %d, %v, %v, %v]",
+		r.Index, r.Winner, r.StartTick, r.EndTick, r.EndReason, r.KillEvents, r.EconomyEvents, r.BombEvents)
 }
