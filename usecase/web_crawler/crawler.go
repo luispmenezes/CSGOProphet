@@ -1,6 +1,7 @@
 package web_crawler
 
 import (
+	"csgo_prophet/model/web_crawler"
 	"log"
 	"net/http"
 	"net/url"
@@ -11,8 +12,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool) []model.DemoLink {
-	var demoLinkList []model.DemoLink
+func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool) []web_crawler.DemoLink {
+	var demoLinkList []web_crawler.DemoLink
 	resultURLList := getResults(startDate, endDate, stars, demoRequired)
 
 	for _, resultURL := range resultURLList {
@@ -105,7 +106,7 @@ func getResultsPage(offset int, startDate string, endDate string, stars int, dem
 	return matchURLList, lastRecord, recordCount
 }
 
-func getResultDemoLink(resultURL string) model.DemoLink {
+func getResultDemoLink(resultURL string) web_crawler.DemoLink {
 	log.Printf("Get DemoLink (matchUrl:%s)", resultURL)
 
 	httpClient := &http.Client{
@@ -140,5 +141,5 @@ func getResultDemoLink(resultURL string) model.DemoLink {
 	demoURL, _ := document.Find(".stream-box > a").First().Attr("href")
 	timeStamp, _ := document.Find(".teamsBox > .timeAndEvent > .time").First().Attr("data-unix")
 
-	return model.DemoLink{DemoURL: demoURL, MatchResultURL: resultURL, Timestamp: timeStamp}
+	return web_crawler.DemoLink{DemoURL: demoURL, MatchResultURL: resultURL, Timestamp: timeStamp}
 }

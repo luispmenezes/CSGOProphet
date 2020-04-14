@@ -1,11 +1,11 @@
 package demo_harvester
 
 import (
-	"log"
-	"os"
-
+	"csgo_prophet/model/demo"
 	dem "github.com/markus-wa/demoinfocs-golang"
 	events "github.com/markus-wa/demoinfocs-golang/events"
+	"log"
+	"os"
 )
 
 func ProcessDemo(demoFilePath string) {
@@ -17,7 +17,7 @@ func ProcessDemo(demoFilePath string) {
 
 	p := dem.NewParser(f)
 
-	var roundList []model.Round
+	var roundList []demo.Round
 
 	p.RegisterEventHandler(func(e events.MatchStart) {
 		log.Println("Match Start")
@@ -25,7 +25,7 @@ func ProcessDemo(demoFilePath string) {
 
 	p.RegisterEventHandler(func(e events.RoundStart) {
 		//log.Println("Round Start  ")
-		var currentRound model.Round
+		var currentRound demo.Round
 		currentRound.StartTick = p.GameState().IngameTick()
 		roundList = append(roundList, currentRound)
 	})
