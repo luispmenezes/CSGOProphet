@@ -1,4 +1,4 @@
-package model
+package demo
 
 type KillEvent struct {
 }

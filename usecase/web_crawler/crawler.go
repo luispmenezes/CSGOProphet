@@ -1,4 +1,4 @@
-package crawler
+package web_crawler
 
 import (
 	"log"
@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"./model"
 
 	"github.com/PuerkitoBio/goquery"
 )

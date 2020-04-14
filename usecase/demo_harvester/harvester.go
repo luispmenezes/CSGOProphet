@@ -1,10 +1,8 @@
-package harvester
+package demo_harvester
 
 import (
 	"log"
 	"os"
-
-	"../../model"
 
 	dem "github.com/markus-wa/demoinfocs-golang"
 	events "github.com/markus-wa/demoinfocs-golang/events"

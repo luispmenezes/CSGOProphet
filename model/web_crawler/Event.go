@@ -1,4 +1,4 @@
-package model
+package web_crawler
 
 import "fmt"
 

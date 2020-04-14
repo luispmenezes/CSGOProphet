@@ -1,4 +1,4 @@
-package crawler
+package web_crawler
 
 const baseURL = "https://www.hltv.org"
 const resultsURL = baseURL + "/results"
