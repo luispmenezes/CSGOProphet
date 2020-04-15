@@ -9,17 +9,17 @@ import (
 func init() {
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {
-	demoLinks, err := web_crawler.GetDemoLinks("2019-10-14", "2019-10-15", 1, true)
+	matchData, err := web_crawler.GetMatchData("2019-10-14", "2019-10-15", 1, true)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, element := range demoLinks {
-		log.Println(element)
+	for _, element := range matchData {
+		log.Debug(element)
 	}
 }

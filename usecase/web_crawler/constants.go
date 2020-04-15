@@ -14,15 +14,15 @@ const resultsParamType = "matchType"
 const resultsParamMap = "map"
 
 const (
-	ContentDEMO       = "demo"
-	ContentHIGHLIGHTS = "highlights"
-	ContentVOD        = "vod"
-	ContentSTATS      = "stats"
+	contentDEMO       = "demo"
+	contentHIGHLIGHTS = "highlights"
+	contentVOD        = "vod"
+	contentSTATS      = "stats"
 )
 
 const (
-	MatchTypeLAN    = "Lan"
-	MatchTypeONLINE = "Online"
+	matchTypeLAN    = "Lan"
+	matchTypeONLINE = "Online"
 )
 
 const (

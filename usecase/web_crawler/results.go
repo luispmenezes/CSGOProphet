@@ -59,7 +59,7 @@ func getResultsPage(offset int, startDate string, endDate string, stars int, dem
 	}
 
 	if demoRequired {
-		parameters[resultsParamContent] = ContentDEMO
+		parameters[resultsParamContent] = contentDEMO
 	}
 
 	document, err := NewRequest(http.MethodGet, resultsPath, parameters)
