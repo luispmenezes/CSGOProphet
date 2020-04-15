@@ -1,7 +1,7 @@
 package web_crawler
 
-const baseURL = "https://www.hltv.org"
-const resultsURL = baseURL + "/results"
+const baseHost = "www.hltv.org"
+const resultsPath = "/results"
 const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
 const requestTimeout = 30
 

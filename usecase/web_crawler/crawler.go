@@ -1,145 +1,62 @@
 package web_crawler
 
 import (
-	"csgo_prophet/model/web_crawler"
-	"log"
+	"errors"
+	"fmt"
+	"github.com/PuerkitoBio/goquery"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 	"time"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
-func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool) []web_crawler.DemoLink {
-	var demoLinkList []web_crawler.DemoLink
-	resultURLList := getResults(startDate, endDate, stars, demoRequired)
-
-	for _, resultURL := range resultURLList {
-		demoLinkList = append(demoLinkList, getResultDemoLink(resultURL))
-	}
-
-	return demoLinkList
+var httpClient = &http.Client{
+	Timeout: requestTimeout * time.Second,
 }
 
-func getResults(startDate string, endDate string, stars int, demoRequired bool) []string {
-	var resultsURLs []string
-	var maxRecords int
-	resultsURLs, _, maxRecords = getResultsPage(0, startDate, endDate, stars, demoRequired)
-	log.Printf("Result Records Count: %d", maxRecords)
-	for i := 100; i < maxRecords; i += 100 {
-		pageURLs, _, _ := getResultsPage(i, startDate, endDate, stars, demoRequired)
-		resultsURLs = append(resultsURLs, pageURLs...)
-	}
-	return resultsURLs
-}
+var baseURL = &url.URL{Scheme: "https", Host: baseHost}
 
-func getResultsPage(offset int, startDate string, endDate string, stars int, demoRequired bool) ([]string, int, int) {
-	log.Printf("Get Result Page (offset:%d,start:%s,end:%s,star%d,demo:%t)", offset, startDate, endDate, stars, demoRequired)
+func NewRequest(method, path string, queryParameters map[string]string) (*goquery.Document, error) {
+	log.WithFields(log.Fields{
+		"method":      method,
+		"path":        path,
+		"queryParams": queryParameters,
+	}).Debug("New Crawler Http request")
 
-	httpClient := &http.Client{
-		Timeout: requestTimeout * time.Second,
+	requestURL := baseURL
+	requestURL.Path = path
+	requestQuery := requestURL.Query()
+
+	for paramKey, paramValue := range queryParameters {
+		requestQuery.Set(paramKey, paramValue)
 	}
 
-	parameters := url.Values{}
+	requestURL.RawQuery = requestQuery.Encode()
 
-	if offset > 0 {
-		parameters.Add(resultsParamOffset, strconv.Itoa(offset))
-	}
-
-	if len(startDate) > 0 {
-		parameters.Add(resultsParamStartDate, startDate)
-	}
-
-	if len(endDate) > 0 {
-		parameters.Add(resultsParamEndDate, endDate)
-	}
-
-	if stars > 0 && stars <= 5 {
-		parameters.Add(resultsParamStars, strconv.Itoa(stars))
-	}
-
-	if demoRequired {
-		parameters.Add(resultsParamContent, ContentDEMO)
-	}
-
-	requestURL := resultsURL
-	if len(parameters) > 0 {
-		requestURL += "?" + parameters.Encode()
-	}
-
-	log.Printf("New Request-> URL:%s", requestURL)
-
-	req, err := http.NewRequest("GET", requestURL, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header.Add("User-Agent", userAgent)
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		log.Fatal("Error sending http request", err)
-	}
-
-	defer resp.Body.Close()
-
-	//TODO: Implement Status Check
-
-	document, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		log.Fatal("Error loading HTTP response body", err)
-	}
-
-	paginationTokens := strings.Split(document.Find(".pagination-data").First().Text(), " ")
-	recordCount, _ := strconv.Atoi(paginationTokens[len(paginationTokens)-2])
-	lastRecord, _ := strconv.Atoi(paginationTokens[2])
-
-	matchURLList := []string{}
-
-	document.Find(".results-holder > .results-all > .results-sublist > .result-con > .a-reset").Each(func(i int, s *goquery.Selection) {
-		url, _ := s.Attr("href")
-		matchURLList = append(matchURLList, url)
-	})
-
-	return matchURLList, lastRecord, recordCount
-}
-
-func getResultDemoLink(resultURL string) web_crawler.DemoLink {
-	log.Printf("Get DemoLink (matchUrl:%s)", resultURL)
-
-	httpClient := &http.Client{
-		Timeout: requestTimeout * time.Second,
-	}
-
-	requestURL := baseURL + resultURL
-
-	log.Printf("New Request-> URL:%s", requestURL)
-
-	req, err := http.NewRequest("GET", requestURL, nil)
+	request, err := http.NewRequest(method, requestURL.String(), http.NoBody)
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := httpClient.Do(req)
+	request.Header.Add("User-Agent", userAgent)
+
+	response, err := httpClient.Do(request)
+
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	defer resp.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, errors.New(fmt.Sprintf("Error executing http request %d", response.StatusCode))
+	}
 
-	//TODO: Implement Status Check
+	defer response.Body.Close()
 
-	document, err := goquery.NewDocumentFromReader(resp.Body)
+	document, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
-		log.Fatal("Error loading HTTP response body", err)
+		log.Error("Error loading HTTP response body", err)
 	}
 
-	demoURL, _ := document.Find(".stream-box > a").First().Attr("href")
-	timeStamp, _ := document.Find(".teamsBox > .timeAndEvent > .time").First().Attr("data-unix")
-
-	return web_crawler.DemoLink{DemoURL: demoURL, MatchResultURL: resultURL, Timestamp: timeStamp}
+	return document, err
 }
