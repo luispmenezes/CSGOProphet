@@ -2,8 +2,9 @@ package web_crawler
 
 import "time"
 
-type Match struct { //TODO FORMAT AND STARS
+type Match struct {
 	Url              string
+	Format           int
 	StartTime        time.Time
 	Event            string
 	Team1            string

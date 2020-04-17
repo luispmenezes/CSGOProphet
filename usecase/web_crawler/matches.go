@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	document, err := NewRequest(http.MethodGet, matchUrl, nil)
 
 	if err != nil {
-		log.Error("Error loading HTTP response body", err)
+		return web_crawler.Match{}, err
 	}
 
 	match := web_crawler.Match{Url: matchUrl}
@@ -62,6 +63,18 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	}
 
 	match.Event = event
+
+	//FORMAT
+	formatStr := document.Find(".veto-box > div").First().Text()
+
+	format, formatErr := strconv.Atoi(string(strings.Split(formatStr, " ")[2][0]))
+
+	if formatErr != nil {
+		log.Error("Invalid format ", format)
+		return web_crawler.Match{}, formatErr
+	}
+
+	match.Format = format
 
 	//DEMO URL
 	demoURL, demoUrlExists := document.Find(".stream-box > a").First().Attr("href")
