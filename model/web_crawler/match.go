@@ -18,17 +18,18 @@ type Match struct {
 }
 
 type MapStats struct {
+	Url           string
 	MapName       string
 	Team1Rounds   int
 	Team1TRounds  int
 	Team1CTRounds int
-	Team1Rating   int
+	Team1Rating   float64
 	Team1Fks      int
 	Team1Clutches int
 	Team2Rounds   int
 	Team2TRounds  int
 	Team2CTRounds int
-	Team2Rating   int
+	Team2Rating   float64
 	Team2Fks      int
 	Team2Clutches int
 	PlayerStats1  []PlayerMapStats

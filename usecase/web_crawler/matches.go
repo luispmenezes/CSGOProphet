@@ -2,8 +2,10 @@ package web_crawler
 
 import (
 	"csgo_prophet/model/web_crawler"
-	"errors"
+	"fmt"
+
 	"github.com/PuerkitoBio/goquery"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -16,13 +18,13 @@ func GetMatchData(startDate string, endDate string, stars int, demoRequired bool
 	resultURLList, err := getResults(startDate, endDate, stars, demoRequired)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "match results query request failed")
 	}
 
 	for _, resultURL := range resultURLList {
 		match, err := parseCompletedMatch(resultURL)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "error during match parsing")
 		}
 
 		matchList = append(matchList, match)
@@ -37,7 +39,7 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	document, err := NewRequest(http.MethodGet, matchUrl, nil)
 
 	if err != nil {
-		return web_crawler.Match{}, err
+		return web_crawler.Match{}, errors.Wrap(err, "match overview web request failed")
 	}
 
 	match := web_crawler.Match{Url: matchUrl}
@@ -51,7 +53,7 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	tsMilliseconds, err := strconv.ParseInt(timestamp, 10, 64)
 
 	if err != nil {
-		return web_crawler.Match{}, err
+		return web_crawler.Match{}, errors.Wrap(err, "match timestamp parsing failed")
 	} else {
 		match.StartTime = time.Unix(int64(float64(tsMilliseconds)/1000), 0)
 	}
@@ -99,7 +101,7 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	team1ScoreInt, err := strconv.Atoi(team1Score)
 
 	if err != nil {
-		return web_crawler.Match{}, err
+		return web_crawler.Match{}, errors.Wrap(err, "team 1 score parsing failed")
 	}
 
 	match.Team1Score = team1ScoreInt
@@ -118,7 +120,7 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	team2ScoreInt, err := strconv.Atoi(team2Score)
 
 	if err != nil {
-		return web_crawler.Match{}, err
+		return web_crawler.Match{}, errors.Wrap(err, "team 2 score parsing failed")
 	}
 
 	match.Team2Score = team2ScoreInt
@@ -147,16 +149,16 @@ func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	//MAP STATS
 	var mapLinkList []string
 	var mapStatsList []web_crawler.MapStats
-	document.Find(".results-center-stats > results-stats").Each(func(i int, s *goquery.Selection) {
+	document.Find(".results-center-stats > .results-stats").Each(func(i int, s *goquery.Selection) {
 		mapStatsLink, _ := s.Attr("href")
 		mapLinkList = append(mapLinkList, mapStatsLink)
 	})
 
-	for _, mapLink := range mapLinkList {
+	for i, mapLink := range mapLinkList {
 		mapStats, err := parseMapStats(mapLink)
 
 		if err != nil {
-			return web_crawler.Match{}, err
+			return web_crawler.Match{}, errors.Wrap(err, fmt.Sprintf("error parsing map stats %d", i))
 		}
 		mapStatsList = append(mapStatsList, mapStats)
 	}
