@@ -48,7 +48,11 @@ func NewRequest(method, path string, queryParameters map[string]string) (*goquer
 	}
 
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.New(fmt.Sprintf("Error executing http request %d", response.StatusCode))
+		if response.StatusCode == http.StatusTooManyRequests {
+			return nil, errors.New("too many requests")
+		} else {
+			return nil, errors.New(fmt.Sprintf("error executing http request status: %d", response.StatusCode))
+		}
 	}
 
 	defer response.Body.Close()

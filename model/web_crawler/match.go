@@ -18,33 +18,42 @@ type Match struct {
 }
 
 type MapStats struct {
-	Url           string
-	MapName       string
-	Team1Rounds   int
-	Team1TRounds  int
-	Team1CTRounds int
-	Team1Rating   float64
-	Team1Fks      int
-	Team1Clutches int
-	Team2Rounds   int
-	Team2TRounds  int
-	Team2CTRounds int
-	Team2Rating   float64
-	Team2Fks      int
-	Team2Clutches int
-	PlayerStats1  []PlayerMapStats
-	PlayerStats2  []PlayerMapStats
+	Url              string
+	MapName          string
+	Team1Rounds      int
+	Team1TRounds     int
+	Team1CTRounds    int
+	Team1Rating      float64
+	Team1Fks         int
+	Team1Clutches    int
+	Team2Rounds      int
+	Team2TRounds     int
+	Team2CTRounds    int
+	Team2Rating      float64
+	Team2Fks         int
+	Team2Clutches    int
+	Team1PlayerStats []PlayerMapStats
+	Team2PlayerStats []PlayerMapStats
+	RoundDetails     []RoundDetail
 }
 
 type PlayerMapStats struct {
+	Name         string
 	Kills        int
 	Headshots    int
 	Assists      int
 	FlashAssists int
 	Deaths       int
-	KAST         int
+	KAST         float64
 	KDRatio      int
-	ADR          int
+	ADR          float64
 	FKDiff       int
-	Rating       int
+	Rating       float64
+}
+
+type RoundDetail struct {
+	Index           int
+	Winner          int
+	EquipmentValue1 int
+	EquipmentValue2 int
 }
