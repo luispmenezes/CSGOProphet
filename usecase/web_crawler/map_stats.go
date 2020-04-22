@@ -287,28 +287,49 @@ func parseEconData(economyUrl string) ([]web_crawler.RoundDetail, error) {
 	}
 
 	var roundDetails []web_crawler.RoundDetail
-	firstHalfData := document.Find(".equipment-categories").First()
 
-	firstHalfData.Find("tbody > .team-categories").First().Find(".equipment-category-td").Each(func(i int, selection *goquery.Selection) {
+	// Team 1 Value and Winner
+	document.Find(".stats-match-economy > .equipment-categories > tbody > .team-categories:nth-of-type(even) > .equipment-category-td").Each(func(i int, selection *goquery.Selection) {
 		currentRound := web_crawler.RoundDetail{Index: i}
+		eqValueStr, eqValueExists := selection.Attr("title")
 
-		eqValue, err := strconv.Atoi(selection.Text()[17:])
+		if eqValueExists {
+			eqValue, err := strconv.Atoi(eqValueStr[17:])
 
-		if err != nil {
-			currentRound.EquipmentValue1 = -1
+			if err != nil {
+				currentRound.EquipmentValue1 = -1
+			} else {
+				currentRound.EquipmentValue1 = eqValue
+			}
 		} else {
-			currentRound.EquipmentValue1 = eqValue
+			currentRound.EquipmentValue1 = -1
 		}
 
-		imgSrc, _ := selection.Find(".equipment-category").Attr("src")
-
-		if strings.HasSuffix(imgSrc, "Win.svg") {
-			currentRound.Winner = 1
-		} else {
+		if selection.Find(".equipment-category").HasClass("lost") {
 			currentRound.Winner = 2
+		} else {
+			currentRound.Winner = 1
 		}
 
 		roundDetails = append(roundDetails, currentRound)
+	})
+
+	// Team 2 Value
+	document.Find(".stats-match-economy > .equipment-categories > tbody > .team-categories:nth-of-type(odd) > .equipment-category-td").Each(func(i int, selection *goquery.Selection) {
+		eqValueStr, eqValueExists := selection.Attr("title")
+
+		if eqValueExists {
+			eqValue, err := strconv.Atoi(eqValueStr[17:])
+
+			if err != nil {
+				roundDetails[i].EquipmentValue2 = -1
+			} else {
+				roundDetails[i].EquipmentValue2 = eqValue
+			}
+		} else {
+			roundDetails[i].EquipmentValue2 = -1
+		}
+
 	})
 
 	return roundDetails, nil
