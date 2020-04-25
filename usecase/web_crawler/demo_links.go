@@ -24,7 +24,7 @@ func GetDemoLinks(startDate string, endDate string, stars int, demoRequired bool
 func getMatchDemoLink(matchUrl string) web_crawler.DemoLink {
 	log.WithFields(log.Fields{"matchUrl": matchUrl}).Info("Get DemoLink")
 
-	document, err := NewRequest(http.MethodGet, matchUrl, nil)
+	document, err := SendRequestWithRetry(http.MethodGet, matchUrl, nil)
 
 	if err != nil {
 		log.Error("Error loading HTTP response body", err)

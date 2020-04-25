@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
+	"math"
 	"net/http"
 	"net/url"
 	"time"
@@ -16,7 +17,7 @@ var httpClient = &http.Client{
 
 var baseURL = &url.URL{Scheme: "https", Host: baseHost}
 
-func NewRequest(method, path string, queryParameters map[string]string) (*goquery.Document, error) {
+func newRequest(method, path string, queryParameters map[string]string) (*goquery.Document, error) {
 	log.WithFields(log.Fields{
 		"method":      method,
 		"path":        path,
@@ -63,4 +64,24 @@ func NewRequest(method, path string, queryParameters map[string]string) (*goquer
 	}
 
 	return document, err
+}
+
+func SendRequestWithRetry(method, path string, queryParameters map[string]string) (*goquery.Document, error) {
+	var result *goquery.Document
+	var err error
+	idx := 0.0
+
+	for {
+		result, err = newRequest(method, path, queryParameters)
+		if err != nil && err.Error() == "too many requests" {
+			log.Debug("Too many requests backing off -> idx :", idx)
+			time.Sleep(time.Duration(math.Min(math.Pow(2.0, idx), 128.0)) * time.Second)
+			idx++
+		} else {
+			time.Sleep(1 * time.Second)
+			break
+		}
+	}
+
+	return result, err
 }

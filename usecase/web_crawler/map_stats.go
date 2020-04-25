@@ -14,7 +14,7 @@ import (
 func parseMapStats(mapStatsUrl string) (web_crawler.MapStats, error) {
 	log.WithFields(log.Fields{"matchUrl": mapStatsUrl}).Info("Parsing match")
 
-	document, err := NewRequest(http.MethodGet, mapStatsUrl, nil)
+	document, err := SendRequestWithRetry(http.MethodGet, mapStatsUrl, nil)
 
 	if err != nil {
 		return web_crawler.MapStats{}, errors.Wrap(err, "map stats overview web request failed")
@@ -280,7 +280,7 @@ func parsePlayerStats(statsRows *goquery.Selection) ([]web_crawler.PlayerMapStat
 func parseEconData(economyUrl string) ([]web_crawler.RoundDetail, error) {
 	log.WithFields(log.Fields{"matchUrl": economyUrl}).Info("Parsing economy data ")
 
-	document, err := NewRequest(http.MethodGet, economyUrl, nil)
+	document, err := SendRequestWithRetry(http.MethodGet, economyUrl, nil)
 
 	if err != nil {
 		return []web_crawler.RoundDetail{}, errors.Wrap(err, "economic data web request failed")

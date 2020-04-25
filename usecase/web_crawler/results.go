@@ -62,7 +62,7 @@ func getResultsPage(offset int, startDate string, endDate string, stars int, dem
 		parameters[resultsParamContent] = contentDEMO
 	}
 
-	document, err := NewRequest(http.MethodGet, resultsPath, parameters)
+	document, err := SendRequestWithRetry(http.MethodGet, resultsPath, parameters)
 	if err != nil {
 		log.Error("Error loading HTTP response body", err)
 		return nil, 0, 0, err

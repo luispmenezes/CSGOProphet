@@ -36,7 +36,7 @@ func GetMatchData(startDate string, endDate string, stars int, demoRequired bool
 func parseCompletedMatch(matchUrl string) (web_crawler.Match, error) {
 	log.WithFields(log.Fields{"matchUrl": matchUrl}).Info("Parsing match")
 
-	document, err := NewRequest(http.MethodGet, matchUrl, nil)
+	document, err := SendRequestWithRetry(http.MethodGet, matchUrl, nil)
 
 	if err != nil {
 		return web_crawler.Match{}, errors.Wrap(err, "match overview web request failed")
